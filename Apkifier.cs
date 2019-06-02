@@ -31,9 +31,9 @@ namespace Emulamer.Utils
     {
         private SHA1 _sha = SHA1Managed.Create();
         private UTF8Encoding _encoding = new UTF8Encoding(false);
-        protected string _filename;
         protected ZipArchive _archive;
-        private bool _sign;
+        private bool _signOnDispose;
+        private bool _archiveOwned;
         private string _pemData;
 
         /// <summary>
@@ -52,24 +52,28 @@ namespace Emulamer.Utils
         /// </summary>
         /// <param name="filename">The full path to the APK file</param>
         /// <param name="sign">True to sign the APK when Apkifier is disposed.</param>
-        /// <param name="x509certificateData">The PEM data of the certificate to use with both public and private keys.  If null, a new, automatically created certificate will be used.</param>
+        /// <param name="pemCertificateData">The PEM data of the certificate to use with both public and private keys.  If null, a new, automatically created certificate will be used.</param>
         public Apkifier(string filename, bool sign = true, string pemCertificateData = null)
         {
-            _filename = filename;
-            _sign = sign;
+            _signOnDispose = sign;
             _archive = ZipFile.Open(filename, ZipArchiveMode.Update);
-            if (pemCertificateData != null)
-            {
-                _pemData = pemCertificateData;
-                //test that the certificate loads before going further
-                AsymmetricKeyParameter pk;
-                LoadCert(_pemData, out pk);
-            }
-            else
-            {
-                _pemData = GenerateNewCertificatePEM();
-            }
+            _archiveOwned = true;
+            GenerateOrLoadCertificatePEM(pemCertificateData);
         }
+
+        /// <summary>
+        /// Creates a new instance of Apkifier with an existing ZipArchive
+        /// </summary>
+        /// <param name="archive">The archive of the APK file in Update mode</param>
+        /// <param name="pemCertificateData">The PEM data of the certificate to use with both public and private keys.  If null, a new, automatically created certificate will be used.</param>
+        public Apkifier(ZipArchive archive, string pemCertificateData = null)
+        {
+            _signOnDispose = false;
+            _archive = archive;
+            _archiveOwned = false;
+            GenerateOrLoadCertificatePEM(pemCertificateData);
+        }
+
 
         public void LoadCert(byte[] certData)
         {
@@ -115,7 +119,7 @@ namespace Emulamer.Utils
             using (FileStream fs = File.Open(inputFileName, FileMode.Open, FileAccess.Read))
             {
                 Write(fs, targetPath, overwrite, compress);
-            }          
+            }
         }
 
         /// <summary>
@@ -216,6 +220,7 @@ namespace Emulamer.Utils
         }
 
         #region Signature
+        // https://github.com/dotnet/corefx/blob/aa0c037c1f64c91f73698d0607dea16904d08da8/src/System.IO.Compression/src/System/IO/Compression/ZipArchiveEntry.cs#L935
         public void Sign()
         {
             //delete all the META-INF stuff that exists already
@@ -277,7 +282,7 @@ namespace Emulamer.Utils
 
             //get the key block (all the hassle distilled into one line), then write it out to the RSA file
             byte[] keyBlock = SignIt(sigFileBytes);
-            var rsaEntry = _archive.CreateEntry("META-INF/BS.RSA");            
+            var rsaEntry = _archive.CreateEntry("META-INF/BS.RSA");
             using (Stream blockStream = rsaEntry.Open())
             {
                 blockStream.Write(keyBlock, 0, keyBlock.Length);
@@ -316,7 +321,7 @@ namespace Emulamer.Utils
                     {
                         swSFFile.WriteLine($"Name: {sourceFile.FullName}");
                         swSFFile.WriteLine($"SHA1-Digest: {hashOfMFSection}");
-                        swSFFile.WriteLine(); 
+                        swSFFile.WriteLine();
                     }
 
                     msSection.Seek(0, SeekOrigin.Begin);
@@ -325,10 +330,24 @@ namespace Emulamer.Utils
             }
         }
 
+        private void GenerateOrLoadCertificatePEM(string pemCertificateData) {
+            if (pemCertificateData != null)
+            {
+                _pemData = pemCertificateData;
+                //test that the certificate loads before going further
+                AsymmetricKeyParameter pk;
+                LoadCert(_pemData, out pk);
+            }
+            else
+            {
+                _pemData = GenerateNewCertificatePEM();
+            }
+        }
+
         /// <summary>
         /// Creates a new X509 certificate and returns its data in PEM format
         /// </summary>
-        public string GenerateNewCertificatePEM()
+        public static string GenerateNewCertificatePEM()
         {
             var randomGenerator = new CryptoApiRandomGenerator();
             var random = new SecureRandom(randomGenerator);
@@ -353,7 +372,7 @@ namespace Emulamer.Utils
             using (var writer = new StringWriter())
             {
                 var pemWriter = new OpenSsl.PemWriter(writer);
-                                
+
                 pemWriter.WriteObject(new PemObject("CERTIFICATE", cert.GetEncoded()));
                 pemWriter.WriteObject(subjectKeyPair.Private);
                 return writer.ToString();
@@ -396,7 +415,7 @@ namespace Emulamer.Utils
         private byte[] SignIt(byte[] sfFileData)
         {
             AsymmetricKeyParameter privateKey = null;
-            
+
             var cert = LoadCert(_pemData, out privateKey);
 
             //create things needed to make the CmsSignedDataGenerator work
@@ -441,8 +460,8 @@ namespace Emulamer.Utils
             {
                 if (disposing)
                 {
-                    Sign();
-                    if (_archive != null)
+                    if(_signOnDispose) Sign();
+                    if (_archive != null && _archiveOwned)
                     {
                         _archive.Dispose();
                         _archive = null;

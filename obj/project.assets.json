@@ -39,7 +39,7 @@
   },
   "libraries": {
     "Microsoft.NETCore.Platforms/1.1.0": {
-      "sha512": "+aQ8QhPtH5URjHzCvoH189hnZhrXtulXtjYftIUA8HV1aKBhOLQEhFisdSlGjlmv1x7YyvMLr8HjMhKCJ8/fuQ==",
+      "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
       "type": "package",
       "path": "microsoft.netcore.platforms/1.1.0",
       "files": [
@@ -208,30 +208,28 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\VR\\.nuget\\packages\\": {},
-    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+    "/Users/tristan/.nuget/packages/": {},
+    "/usr/local/share/dotnet/sdk/NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\VR\\Desktop\\platform-tools_r28.0.3-windows\\code\\QuestStopgap\\Apkifier\\Apkifier.csproj",
+      "projectUniqueName": "/Users/tristan/Box/Dev/Projects/QuestSaberPatch/Apkifier/Apkifier.csproj",
       "projectName": "Apkifier",
-      "projectPath": "C:\\Users\\VR\\Desktop\\platform-tools_r28.0.3-windows\\code\\QuestStopgap\\Apkifier\\Apkifier.csproj",
-      "packagesPath": "C:\\Users\\VR\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\VR\\Desktop\\platform-tools_r28.0.3-windows\\code\\QuestStopgap\\Apkifier\\obj\\",
+      "projectPath": "/Users/tristan/Box/Dev/Projects/QuestSaberPatch/Apkifier/Apkifier.csproj",
+      "packagesPath": "/Users/tristan/.nuget/packages/",
+      "outputPath": "/Users/tristan/Box/Dev/Projects/QuestSaberPatch/Apkifier/obj/",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\VR\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/Users/tristan/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netstandard2.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
